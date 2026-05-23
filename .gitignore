@@ -7,3 +7,15 @@
 Thumbs.db
 .DS_Store
 *.swp
+
+# Local webcam test captures (may contain personal photos) - never commit
+capture*.jpg
+probe_cam*.jpg
+
+# Generated alert audio (regenerate with: python tools/tts.py --bake)
+tools/alerts/
+
+# Local secrets (Wi-Fi password, API keys) - never commit
+secrets.h
+**/secrets.h
+.env
