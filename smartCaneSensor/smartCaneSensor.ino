@@ -14,15 +14,17 @@ long a;
 
 // selected pitches.h sound fitted toward alerting about a real time alert of an object nearby
 int alertMelody[] = {
-  NOTE_C6, NOTE_G6, NOTE_C6, NOTE_G6,
-  NOTE_A6, NOTE_G6, NOTE_A6, NOTE_G6,
-  NOTE_C7, NOTE_C7, NOTE_G6
+  NOTE_C6,
+  NOTE_G6,
+  NOTE_C7,
+  NOTE_G6
 };
 
 int alertDurations[] = {
-  150, 150, 150, 150,
-  120, 120, 120, 120,
-  200, 200, 400
+  120,
+  120,
+  180,
+  200
 };
 
 int lenAlertDuration = sizeof(alertDurations) / sizeof(alertDurations[0]);
