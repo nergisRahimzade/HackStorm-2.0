@@ -23,3 +23,4 @@ tools/alerts/
 secrets.h
 **/secrets.h
 .env
+node_modules

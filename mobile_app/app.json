@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "SmartCane",
+    "slug": "smart-cane-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#1a1a2e"
+    },
+    "android": {
+      "package": "com.smartcane.mobile",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "RECEIVE_BOOT_COMPLETED"
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "com.smartcane.mobile",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "SmartCane needs your location to send it to your emergency contact when a fall is detected.",
+        "NSMotionUsageDescription": "SmartCane uses the accelerometer to detect falls."
+      }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "SmartCane needs your location to send it to your emergency contact when a fall is detected."
+        }
+      ]
+    ]
+  }
+}

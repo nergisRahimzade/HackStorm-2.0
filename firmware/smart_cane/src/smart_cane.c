@@ -22,9 +22,9 @@
 
 /* ── User-configurable settings ─────────────────────────────────────────────── */
 /* WiFi — UPDATE SSID/PASS/IP when switching networks                            */
-#define WIFI_SSID    "hasan adl\u0131 ki\u015fiye ait S21 FE"  /* current 2.4 GHz hotspot        */
-#define WIFI_PASS    "ulku2503,"           /* WPA2 passphrase                   */
-#define LAPTOP_IP    "10.218.130.50"       /* laptop IP on this network          */
+#define WIFI_SSID    "JJ Lake"             /* current 2.4 GHz hotspot            */
+#define WIFI_PASS    "20220315"            /* WPA2 passphrase                    */
+#define LAPTOP_IP    "192.168.34.203"      /* laptop IP on this network          */
 #define LAPTOP_PORT  5000                  /* smart_cane_app.py Flask port       */
 
 /* Tuya device license (uuid + authkey from TuyaOpen dashboard)                  */
@@ -55,9 +55,16 @@
 /* Audio */
 #include "board_com_api.h"
 #include "tdl_audio_manage.h"
+#include "lvgl.h"
+#include "lv_vendor.h"
+
+#ifndef DISPLAY_NAME
+#define DISPLAY_NAME "display"
+#endif
 
 /* ── Pin assignments ─────────────────────────────────────────────────────────── */
 #define PIN_BUZZER          47
+#define PIN_VIBRATION       17      /* ERM coin vibration motor via NPN driver  */
 #define PIN_ULTRASONIC_TRIG 14
 #define PIN_ULTRASONIC_ECHO 15
 #define PIN_I2C_SDA         20
@@ -98,15 +105,65 @@ static TDL_AUDIO_INFO_T    sg_audio_info = {0};
 static volatile float      sg_magnitude  = 1.0f;
 static volatile bool       sg_free_fall  = false;
 static volatile uint32_t   sg_buzz_end   = 0;   /* millis() when buzzer should stop */
+static volatile uint32_t   sg_vib_end    = 0;   /* millis() when vibration should stop */
 static volatile float      sg_dist_cm    = -1.0f;
 static volatile bool       sg_obstacle   = false;
 static THREAD_HANDLE       sg_sensor_th  = NULL;
 static THREAD_HANDLE       sg_net_th     = NULL;
+static bool                sg_display_ready = false;
+static lv_obj_t           *sg_title_label   = NULL;
+static lv_obj_t           *sg_status_label  = NULL;
+static lv_obj_t           *sg_notice_label  = NULL;
 
 /* ── Millisecond helper ──────────────────────────────────────────────────────── */
 static inline uint32_t millis(void)
 {
     return (uint32_t)(bk_aon_rtc_get_us() / 1000ULL);
+}
+
+static void display_set_status(const char *status)
+{
+    if (!sg_display_ready || !sg_status_label || !status) return;
+    lv_vendor_disp_lock();
+    lv_label_set_text(sg_status_label, status);
+    lv_vendor_disp_unlock();
+}
+
+static void display_set_notice(const char *notice)
+{
+    if (!sg_display_ready || !sg_notice_label || !notice) return;
+    lv_vendor_disp_lock();
+    lv_label_set_text(sg_notice_label, notice);
+    lv_vendor_disp_unlock();
+}
+
+static void display_init(void)
+{
+    lv_vendor_init(DISPLAY_NAME);
+
+    lv_vendor_disp_lock();
+    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_black(), LV_PART_MAIN);
+
+    sg_title_label = lv_label_create(lv_screen_active());
+    lv_label_set_text(sg_title_label, "Smart Cane");
+    lv_obj_set_style_text_color(sg_title_label, lv_color_white(), LV_PART_MAIN);
+    lv_obj_align(sg_title_label, LV_ALIGN_TOP_MID, 0, 18);
+
+    sg_status_label = lv_label_create(lv_screen_active());
+    lv_label_set_text(sg_status_label, "Booting...");
+    lv_obj_set_style_text_color(sg_status_label, lv_palette_main(LV_PALETTE_GREEN), LV_PART_MAIN);
+    lv_obj_align(sg_status_label, LV_ALIGN_TOP_LEFT, 14, 58);
+
+    sg_notice_label = lv_label_create(lv_screen_active());
+    lv_obj_set_width(sg_notice_label, 292);
+    lv_label_set_long_mode(sg_notice_label, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(sg_notice_label, "Waiting for WiFi and scene alerts...");
+    lv_obj_set_style_text_color(sg_notice_label, lv_color_white(), LV_PART_MAIN);
+    lv_obj_align(sg_notice_label, LV_ALIGN_TOP_LEFT, 14, 110);
+
+    lv_vendor_disp_unlock();
+    lv_vendor_start(5, 1024 * 8);
+    sg_display_ready = true;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
@@ -132,6 +189,19 @@ static void buzzer_tone(uint32_t freq_hz, uint32_t dur_ms)
         bk_timer_delay_us(half_us);
     }
     buzzer_off();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+ * Vibration motor
+ * ═════════════════════════════════════════════════════════════════════════════ */
+static void vibration_on(void)
+{
+    tkl_gpio_write(PIN_VIBRATION, TUYA_GPIO_LEVEL_HIGH);
+}
+
+static void vibration_off(void)
+{
+    tkl_gpio_write(PIN_VIBRATION, TUYA_GPIO_LEVEL_LOW);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
@@ -346,9 +416,13 @@ static OPERATE_RET net_event_cb(void *data)
     netmgr_status_e status = *((netmgr_status_e *)data);
     if (status == NETMGR_LINK_UP) {
         sg_wifi_up = true;
+        display_set_status("WiFi connected");
+        display_set_notice("Connected. Waiting for notifications...");
         PR_NOTICE("[SmartCane] WiFi connected");
     } else {
         sg_wifi_up = false;
+        display_set_status("WiFi disconnected");
+        display_set_notice("Trying to reconnect to the laptop app...");
         PR_NOTICE("[SmartCane] WiFi disconnected");
     }
     return OPRT_OK;
@@ -380,6 +454,7 @@ static void net_thread_fn(void *arg)
             snprintf(body, sizeof(body),
                      "{\"type\":\"fall_detected\",\"magnitude\":%.2f}", sg_magnitude);
             http_post_json("/event", body);
+            display_set_notice("Fall detected. Requesting spoken alert...");
             PR_NOTICE("[SmartCane] Fall event sent to laptop");
         } else if (!sg_free_fall) {
             fall_reported = false;
@@ -394,6 +469,14 @@ static void net_thread_fn(void *arg)
             audio_play_pcm(pcm, (uint32_t)pcm_len);
         }
         if (pcm) tkl_system_psram_free(pcm);
+
+        char *notice = NULL;
+        int   notice_len = http_get_body("/pending_notice", (uint8_t **)&notice);
+        if (notice_len > 0 && notice) {
+            notice[notice_len - 1] = '\0';
+            display_set_notice(notice);
+        }
+        if (notice) tkl_system_psram_free(notice);
 
         tal_system_sleep(POLL_MS);
     }
@@ -417,9 +500,11 @@ static void sensor_thread_fn(void *arg)
         .direct = TUYA_GPIO_INPUT,
     };
     tkl_gpio_init(PIN_BUZZER,          &out_cfg);
+    tkl_gpio_init(PIN_VIBRATION,       &out_cfg);
     tkl_gpio_init(PIN_ULTRASONIC_TRIG, &out_cfg);
     tkl_gpio_init(PIN_ULTRASONIC_ECHO, &in_cfg);
     buzzer_off();
+    vibration_off();
 
     /* Startup beep (3 × 80 ms) */
     for (int i = 0; i < 3; ++i) {
@@ -443,10 +528,12 @@ static void sensor_thread_fn(void *arg)
         PR_WARN("[SmartCane] QMI8658 not found — fall detection disabled");
     }
 
-    uint32_t last_accel_t     = 0;
+    uint32_t last_accel_t      = 0;
     uint32_t last_ultrasonic_t = 0;
-    uint32_t last_buzzer_t    = 0;
-    uint32_t last_retry_t     = 0;
+    uint32_t last_buzzer_t     = 0;
+    uint32_t last_vib_t        = 0;
+    bool     vib_state         = false;
+    uint32_t last_retry_t      = 0;
 
     while (1) {
         uint32_t now = millis();
@@ -470,6 +557,7 @@ static void sensor_thread_fn(void *arg)
                         }
                         sg_free_fall = true;
                         sg_buzz_end  = now + BUZZ_HOLD_MS;
+                        sg_vib_end   = now + BUZZ_HOLD_MS;
                     } else {
                         sg_free_fall = false;
                     }
@@ -500,6 +588,23 @@ static void sensor_thread_fn(void *arg)
             buzzer_off();
         }
 
+        /* ── Vibration motor ────────────────────────────────────────────────── */
+        /* Fall → sustained vibration; obstacle → short pulse every 300 ms      */
+        bool vib_fall = (now < sg_vib_end);
+        if (vib_fall) {
+            vibration_on();
+        } else if (sg_obstacle) {
+            if (now - last_vib_t >= 300) {
+                last_vib_t = now;
+                vib_state  = !vib_state;
+                if (vib_state) vibration_on();
+                else           vibration_off();
+            }
+        } else {
+            vibration_off();
+            vib_state = false;
+        }
+
         tal_system_sleep(10);
     }
 }
@@ -517,13 +622,19 @@ void user_main(void)
 
     /* ── Audio subsystem ──────────────────────────────────────────────────── */
     TUYA_CALL_ERR_LOG(board_register_hardware());
+    display_init();
+    display_set_status("Hardware ready");
+    display_set_notice("Starting audio, sensors, and WiFi...");
+
     if (tdl_audio_find(AUDIO_CODEC_NAME, &sg_audio_hdl) == OPRT_OK) {
         tdl_audio_open(sg_audio_hdl, NULL);
         tdl_audio_get_info(sg_audio_hdl, &sg_audio_info);
         tdl_audio_volume_set(sg_audio_hdl, 75);
+        display_set_status("Speaker ready");
         PR_NOTICE("[SmartCane] Audio ready — frame %d B @ %d Hz",
                   sg_audio_info.frame_size, sg_audio_info.sample_rate);
     } else {
+        display_set_status("Speaker not found");
         PR_WARN("[SmartCane] Audio codec not found — speaker will be silent");
     }
 
@@ -572,6 +683,7 @@ void user_main(void)
         &sg_net_th, NULL, NULL, net_thread_fn, NULL, &net_cfg));
 
     PR_NOTICE("[SmartCane] Init complete — waiting for WiFi...");
+    display_set_status("Waiting for WiFi");
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════

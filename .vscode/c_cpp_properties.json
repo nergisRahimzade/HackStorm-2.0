@@ -3,14 +3,28 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "C:/Users/hasan/tuyaopen/platform/T5AI/tuyaos/tuyaos_adapter/include/**",
+                "C:/Users/hasan/tuyaopen/src/**",
+                "C:/Users/hasan/tuyaopen/boards/T5AI/TUYA_T5AI_BOARD/**",
+                "C:/Users/hasan/tuyaopen/src/peripherals/audio_codecs/tdl_audio/include/**"
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE"
             ],
-            "intelliSenseMode": "windows-msvc-x64"
+            "intelliSenseMode": "windows-msvc-x64",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}",
+                    "C:/Users/hasan/tuyaopen/platform/T5AI/tuyaos/tuyaos_adapter/include",
+                    "C:/Users/hasan/tuyaopen/src",
+                    "C:/Users/hasan/tuyaopen/boards/T5AI/TUYA_T5AI_BOARD",
+                    "C:/Users/hasan/tuyaopen/src/peripherals/audio_codecs/tdl_audio/include"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            }
         }
     ],
     "version": 4

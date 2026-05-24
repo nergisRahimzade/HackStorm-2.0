@@ -31,6 +31,7 @@ import threading
 import time
 import urllib.error
 import urllib.request
+import wave
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -117,6 +118,9 @@ _tts_queue    = queue.Queue(maxsize=3)
 
 # Board audio: PCM queued for the T5 board to fetch via GET /pending_command.
 _board_pcm_queue: queue.Queue = queue.Queue(maxsize=8)
+
+# Board display: text notices queued for the T5 board to fetch via GET /pending_notice.
+_board_notice_queue: queue.Queue = queue.Queue(maxsize=8)
 
 # Cooldown: normalized SAY: text → last-spoken monotonic timestamp.
 _said_lock = threading.Lock()
@@ -429,7 +433,7 @@ def _speak_sapi(text: str) -> None:
     script = (
         'Add-Type -AssemblyName System.Speech; '
         '$s = New-Object System.Speech.Synthesis.SpeechSynthesizer; '
-        '$s.Rate = -2; '  # -10 (slowest) to 10 (fastest), -2 is calm
+        '$s.Rate = -2; '
         'try { $s.SelectVoice("Microsoft Zira Desktop") } catch {}; '
         f'$s.Speak("{safe}")'
     )
@@ -1188,6 +1192,16 @@ def pending_command():
         pcm = _board_pcm_queue.get_nowait()
         return Response(pcm, mimetype="audio/L16",
                         headers={"Content-Length": str(len(pcm))})
+    except queue.Empty:
+        return Response(status=204)
+
+
+@app.route("/pending_notice")
+def pending_notice():
+    """T5 board polls this (GET) to receive the latest notification text for display."""
+    try:
+        notice = _board_notice_queue.get_nowait()
+        return Response(notice, mimetype="text/plain; charset=utf-8")
     except queue.Empty:
         return Response(status=204)
 
