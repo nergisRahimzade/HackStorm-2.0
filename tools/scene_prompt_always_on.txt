@@ -15,6 +15,19 @@ For each notable item, give exactly three parts on one line:
   (ACTION only if clearly implied: "board" for an open bus door, "pull handle" for a door,
    "wait" for a red light, "-" when no action is needed)
 
+Report these situations whenever detected (include in the numbered list):
+  - Bus doors open (action: board) or closed
+  - Train or metro doors open (action: board)
+  - Available seat (note approximate location)
+  - No seats available (all seats occupied)
+  - Door ahead: note if push/pull and whether open/closed
+  - Elevator doors open or closed
+  - Exit door or exit sign (note direction)
+  - Revolving door ahead
+  - Counter or service desk ahead
+  - Open service window (someone attending)
+  - Queue or line of people (estimate approximate length: "about 3 people", "long queue")
+
 IMPORTANT decision:
   IMPORTANT: yes  — scene contains something requiring the user's attention or action.
   IMPORTANT: no   — scene is clear, static background only, nothing actionable.
@@ -33,6 +46,23 @@ DROP-OFF / STAIR HAZARD — look for sudden gaps or drops directly in the user's
   DROPOFF: yes — <brief what and where, e.g. "staircase going down, directly ahead">
   DROPOFF: no
 
+ELEVATOR DETECTION — look for elevator doors, button panels, and floor indicators:
+  Signs of arrival: floor number display showing current floor, arrival indicator light,
+  doors beginning to open, or elevator car visible through narrowly-open doors.
+  Signs of doors open: elevator doors clearly parted, cabin interior is visible.
+  ELEVATOR: arrived    — elevator has arrived at this floor (indicator shows floor / doors just opening)
+  ELEVATOR: doors_open — elevator doors are clearly open, cabin interior is visible
+  ELEVATOR: none       — no elevator visible, or elevator present but not arrived/open
+
+TRAFFIC LIGHT DETECTION — look ONLY for PEDESTRIAN crossing signals:
+  Walk/Don't Walk signals, pedestrian push-button signals, pedestrian signal heads showing
+  a walking person silhouette (green) or a standing person / raised hand (red).
+  Do NOT report vehicle-only traffic lights unless they also serve pedestrians.
+  TRAFFIC: detected — a pedestrian traffic signal is visible but current state is unclear
+  TRAFFIC: red      — pedestrian signal shows red / Don't Walk / red standing figure
+  TRAFFIC: green    — pedestrian signal shows green / Walk / green walking figure
+  TRAFFIC: none     — no pedestrian traffic signal visible
+
 OUTPUT THIS EXACT FORMAT — nothing else:
 
 <numbered list, one item per line>
@@ -41,6 +71,8 @@ SAY: <one natural spoken sentence, 20 words max, summarizing the 1–3 most impo
 IMPORTANT: yes  or  IMPORTANT: no
 OVERHEAD: yes — <description>  or  OVERHEAD: no
 DROPOFF: yes — <description>   or  DROPOFF: no
+ELEVATOR: arrived | doors_open | none
+TRAFFIC: red | green | detected | none
 
 ---
 EXAMPLES:
@@ -52,6 +84,8 @@ SAY: Bus 52 directly in front of you, doors open.
 IMPORTANT: yes
 OVERHEAD: no
 DROPOFF: no
+ELEVATOR: none
+TRAFFIC: none
 
 Example 2 — indoor corridor with hazards:
 1. Counter - straight ahead, about 3 meters - -
@@ -61,6 +95,8 @@ SAY: Staircase going down directly ahead, 2 meters; counter beyond it.
 IMPORTANT: yes
 OVERHEAD: no
 DROPOFF: yes — staircase going down, directly ahead, 2 meters
+ELEVATOR: none
+TRAFFIC: none
 
 Example 3 — construction zone:
 1. Scaffolding crossbar - at head level, in front of you - duck under
@@ -68,10 +104,45 @@ SAY: Scaffolding crossbar at head level directly in front of you.
 IMPORTANT: yes
 OVERHEAD: yes — scaffolding crossbar at head level, in front of you
 DROPOFF: no
+ELEVATOR: none
+TRAFFIC: none
 
-Example 4 — clear path:
+Example 4 — pedestrian crossing, red light:
+1. Pedestrian signal - directly ahead - wait, red light
+2. Queue of about 4 people - at the crossing - -
+SAY: Red pedestrian light ahead, please wait.
+IMPORTANT: yes
+OVERHEAD: no
+DROPOFF: no
+ELEVATOR: none
+TRAFFIC: red
+
+Example 5 — elevator lobby:
+1. Elevator doors - directly in front of you - enter
+2. Open elevator cabin - in front of you, about 1 meter - board
+SAY: Elevator doors are open directly in front of you.
+IMPORTANT: yes
+OVERHEAD: no
+DROPOFF: no
+ELEVATOR: doors_open
+TRAFFIC: none
+
+Example 6 — transit station with queue:
+1. Train doors - directly in front of you - board
+2. Queue of about 6 people - boarding the train - wait for turn
+3. Available seat - inside the car, to the right - sit
+SAY: Train doors open, queue of about 6 people boarding.
+IMPORTANT: yes
+OVERHEAD: no
+DROPOFF: no
+ELEVATOR: none
+TRAFFIC: none
+
+Example 7 — clear path:
 1. Clear path - straight ahead - -
 SAY: Clear path ahead.
 IMPORTANT: no
 OVERHEAD: no
 DROPOFF: no
+ELEVATOR: none
+TRAFFIC: none

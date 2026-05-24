@@ -68,7 +68,9 @@ BURST_SIZE     = 2          # frames per Groq request (2 = ~4 k tokens, fits fre
 SCAN_INTERVAL  = 20.0       # seconds between analyses — free Groq tier: ~30k TPM
                              # each scan ≈ 4k tokens → max ~7 scans/min → 20s is safe
 ALERT_COOLDOWN  = 20.0      # seconds before the same general SAY: line repeats
-HAZARD_COOLDOWN = 10.0      # shorter cooldown for safety-critical hazard alerts
+HAZARD_COOLDOWN         = 10.0   # shorter cooldown for safety-critical hazard alerts
+ELEVATOR_COOLDOWN       = 30.0   # cooldown for elevator state announcements
+TRAFFIC_COOLDOWN_COLOR  = 30.0   # cooldown for repeating the same traffic light color
 MAX_HISTORY    = 25
 
 UA = (
@@ -106,6 +108,10 @@ _tts_queue    = queue.Queue(maxsize=3)
 # Cooldown: normalized SAY: text → last-spoken monotonic timestamp.
 _said_lock = threading.Lock()
 _last_said: dict[str, float] = {}
+
+# State transition tracking for elevator and traffic.
+_prev_elevator = "none"
+_prev_traffic  = "none"
 
 # Hazard / actionable keywords used for fallback importance scoring.
 _IMPORTANT_WORDS = frozenset({
@@ -170,7 +176,7 @@ def _groq_call(jpegs: list[bytes]) -> str:
         })
     payload = {
         "model": MODEL,
-        "max_tokens": 350,       # extra headroom for OVERHEAD/DROPOFF lines
+        "max_tokens": 450,       # headroom for all output lines
         "messages": [{"role": "user", "content": content}],
     }
     req = urllib.request.Request(
@@ -214,6 +220,8 @@ def _parse(raw: str) -> dict:
     important = False
     overhead  = {"active": False, "description": ""}
     dropoff   = {"active": False, "description": ""}
+    elevator  = "none"   # none | arrived | doors_open
+    traffic   = "none"   # none | detected | red | green
 
     for line in raw.splitlines():
         line = line.strip()
@@ -228,6 +236,20 @@ def _parse(raw: str) -> dict:
             overhead = _parse_hazard_line(line)
         elif upper.startswith("DROPOFF:"):
             dropoff = _parse_hazard_line(line)
+        elif upper.startswith("ELEVATOR:"):
+            val = line.split(":", 1)[1].strip().lower()
+            if "doors_open" in val or ("doors" in val and "open" in val):
+                elevator = "doors_open"
+            elif "arrived" in val:
+                elevator = "arrived"
+        elif upper.startswith("TRAFFIC:"):
+            val = line.split(":", 1)[1].strip().lower()
+            if "red" in val:
+                traffic = "red"
+            elif "green" in val:
+                traffic = "green"
+            elif "detected" in val:
+                traffic = "detected"
         elif re.match(r"^\d+[.)]\s+", line):
             body  = re.sub(r"^\d+[.)]\s+", "", line)
             parts = [p.strip() for p in body.split(" - ", 2)]
@@ -241,8 +263,8 @@ def _parse(raw: str) -> dict:
     if not say:
         say = raw.strip() or "Scene unclear, please try again."
 
-    # Hazards always force IMPORTANT: yes.
-    if overhead["active"] or dropoff["active"]:
+    # Hazards and actionable signals always force IMPORTANT: yes.
+    if overhead["active"] or dropoff["active"] or elevator != "none" or traffic in ("red", "green"):
         important = True
 
     # Fallback importance if model omitted the IMPORTANT: line.
@@ -255,6 +277,8 @@ def _parse(raw: str) -> dict:
         "important": important,
         "overhead":  overhead,
         "dropoff":   dropoff,
+        "elevator":  elevator,
+        "traffic":   traffic,
         "raw":       raw,
     }
 
@@ -343,7 +367,7 @@ def _speak(say: str) -> None:
 # ── Scanner thread ─────────────────────────────────────────────────────────────
 
 def _scanner_thread() -> None:
-    global _current_scene, _status
+    global _current_scene, _status, _prev_elevator, _prev_traffic
     print(f"[Scanner] Model: {MODEL} | Interval: {SCAN_INTERVAL}s | Burst: {BURST_SIZE} frames")
 
     while True:
@@ -403,6 +427,8 @@ def _scanner_thread() -> None:
                 "important": scene["important"],
                 "overhead":  oh,
                 "dropoff":   do,
+                "elevator":  scene.get("elevator", "none"),
+                "traffic":   scene.get("traffic", "none"),
                 "spoke":     spoke,
             }
 
@@ -686,6 +712,43 @@ _HTML = """\
     .hazard-chip.overhead { background: #2e1500; color: #ff9944; border: 1px solid #5a3000; }
     .hazard-chip.dropoff  { background: #2e0000; color: #ff5555; border: 1px solid #5a0000; }
 
+    /* ─ Signals strip (traffic light / elevator) ────── */
+    .signals-strip {
+      padding: 8px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .sig-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 4px 11px;
+      border-radius: 5px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      font-size: 0.76rem;
+      color: var(--muted);
+      transition: background 0.25s, border-color 0.25s, color 0.25s;
+    }
+    .sig-pill.sig-red          { border-color: var(--red);    background: #200808; color: var(--red);    }
+    .sig-pill.sig-green        { border-color: var(--green);  background: #081808; color: var(--green);  }
+    .sig-pill.sig-detected     { border-color: var(--yellow); background: #181408; color: var(--yellow); }
+    .sig-pill.sig-elev-arrived { border-color: var(--blue);   background: #081020; color: var(--blue);   }
+    .sig-pill.sig-elev-open    { border-color: var(--yellow); background: #181408; color: var(--yellow); }
+    .tl-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: background 0.25s;
+    }
+    .tl-dot.red    { background: var(--red); }
+    .tl-dot.green  { background: var(--green); }
+    .tl-dot.yellow { background: var(--yellow); }
+
     /* ─ Scrollbars ──────────────────────────────── */
     ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -721,6 +784,18 @@ _HTML = """\
       <div class="say-box" id="say-box">
         <div class="say-label">Scene Description</div>
         <div id="say-text">Waiting for first scan…</div>
+      </div>
+
+      <!-- Live signals (traffic light / elevator) -->
+      <div class="signals-strip">
+        <div class="sig-pill" id="traffic-pill">
+          <div class="tl-dot" id="tl-dot"></div>
+          <span id="tl-label">No signal</span>
+        </div>
+        <div class="sig-pill" id="elevator-pill">
+          <span>🛗</span>
+          <span id="elev-label">No elevator</span>
+        </div>
       </div>
 
       <!-- Scene items table -->
@@ -805,6 +880,45 @@ _HTML = """\
       }
     }
 
+    function renderSignals(traffic, elevator) {
+      const tPill = document.getElementById("traffic-pill");
+      const tlDot = document.getElementById("tl-dot");
+      const tlLbl = document.getElementById("tl-label");
+      const ePill = document.getElementById("elevator-pill");
+      const eLbl  = document.getElementById("elev-label");
+
+      // Traffic light
+      tPill.className = "sig-pill";
+      tlDot.className = "tl-dot";
+      if (traffic === "red") {
+        tPill.className += " sig-red";
+        tlDot.className += " red";
+        tlLbl.textContent = "Red — Wait";
+      } else if (traffic === "green") {
+        tPill.className += " sig-green";
+        tlDot.className += " green";
+        tlLbl.textContent = "Green — Go";
+      } else if (traffic === "detected") {
+        tPill.className += " sig-detected";
+        tlDot.className += " yellow";
+        tlLbl.textContent = "Traffic light ahead";
+      } else {
+        tlLbl.textContent = "No signal";
+      }
+
+      // Elevator
+      ePill.className = "sig-pill";
+      if (elevator === "arrived") {
+        ePill.className += " sig-elev-arrived";
+        eLbl.textContent = "Elevator arrived";
+      } else if (elevator === "doors_open") {
+        ePill.className += " sig-elev-open";
+        eLbl.textContent = "Elevator doors open";
+      } else {
+        eLbl.textContent = "No elevator";
+      }
+    }
+
     function renderScene(scene, isAlert) {
       sayEl.textContent = scene.say || "—";
       sayEl.className   = isAlert ? "alert" : "";
@@ -825,7 +939,7 @@ _HTML = """\
       }).join("");
     }
 
-    function addHistory(time, say, important, overhead, dropoff) {
+    function addHistory(time, say, important, overhead, dropoff, elevator, traffic) {
       // Remove "no detections yet" placeholder on first real entry.
       if (historyEl.children.length === 1 &&
           historyEl.firstElementChild.querySelector("[style]")) {
@@ -834,11 +948,22 @@ _HTML = """\
       const li = document.createElement("li");
       const isOverhead = overhead && overhead.active;
       const isDropoff  = dropoff  && dropoff.active;
-      li.className = "h-item" + (isDropoff ? " dropoff" : isOverhead ? " overhead" : (important ? " imp" : ""));
+      const isElev     = elevator && elevator !== "none";
+      const isTraf     = traffic  && traffic  !== "none";
+      let cls = "h-item";
+      if (isDropoff)            cls += " dropoff";
+      else if (isOverhead)      cls += " overhead";
+      else if (isElev || isTraf || important) cls += " imp";
+      li.className = cls;
       let tag = "";
-      if (isDropoff)  tag = `<span class="h-tag dropoff">DROP-OFF</span>`;
-      else if (isOverhead) tag = `<span class="h-tag overhead">OVERHEAD</span>`;
-      else if (important)  tag = `<span class="h-tag scene">SCENE</span>`;
+      if (isDropoff)                  tag = `<span class="h-tag dropoff">DROP-OFF</span>`;
+      else if (isOverhead)            tag = `<span class="h-tag overhead">OVERHEAD</span>`;
+      else if (elevator==="doors_open") tag = `<span class="h-tag scene" style="background:#181408;color:var(--yellow)">ELEVATOR</span>`;
+      else if (elevator==="arrived")   tag = `<span class="h-tag scene" style="background:#081020;color:var(--blue)">ELEVATOR</span>`;
+      else if (traffic==="red")        tag = `<span class="h-tag dropoff">RED LIGHT</span>`;
+      else if (traffic==="green")      tag = `<span class="h-tag" style="background:#081808;color:var(--green);border:none;padding:1px 5px;border-radius:3px">GREEN LIGHT</span>`;
+      else if (traffic==="detected")   tag = `<span class="h-tag scene">SIGNAL</span>`;
+      else if (important)              tag = `<span class="h-tag scene">SCENE</span>`;
       li.innerHTML = `<span class="h-time">${esc(time)}</span>${tag}<span class="h-say">${esc(say)}</span>`;
       historyEl.prepend(li);
       while (historyEl.children.length > 20) {
@@ -857,7 +982,8 @@ _HTML = """\
         } else if (d.type === "scene") {
           renderScene(d.scene, d.important);
           renderHazards(d.scene.overhead, d.scene.dropoff);
-          addHistory(d.time, d.scene.say, d.important, d.scene.overhead, d.scene.dropoff);
+          renderSignals(d.scene.traffic, d.scene.elevator);
+          addHistory(d.time, d.scene.say, d.important, d.scene.overhead, d.scene.dropoff, d.scene.elevator, d.scene.traffic);
           lastUpdate.textContent = "Updated " + d.time;
           setStatus(d.important ? "alert" : "scanning");
         }
