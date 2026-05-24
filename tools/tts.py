@@ -4,12 +4,11 @@ tts.py - SmartCane text-to-speech for spoken notifications & alerts.
 
 Uses Windows' built-in System.Speech (SAPI) via PowerShell: offline, free, no
 API key. Output is 16 kHz / 16-bit / mono PCM - exactly the format the T5
-board's audio codec plays (see firmware/speaker_test), so the board can play
-the bytes directly with tdl_audio_play().
+board's audio codec plays, so the board can play the bytes directly with
+tdl_audio_play().
 
 Notifications/alerts reach the user two ways:
   * Dynamic   - a feature sends arbitrary text -> TTS -> PCM -> board plays it.
-                Used by scene_server.py's /say endpoint.
   * Pre-baked - fixed, time-critical alerts are generated AHEAD of time into
                 alerts/<name>.pcm so they can be flashed onto the board and
                 played INSTANTLY, with no laptop/network round-trip. Safety
