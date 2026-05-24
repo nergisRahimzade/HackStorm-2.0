@@ -355,33 +355,10 @@ def _broadcast(event: dict) -> None:
 def _tts_worker() -> None:
     while True:
         say = _tts_queue.get()
-        mp3 = None
         try:
-            fd, mp3 = tempfile.mkstemp(suffix=".mp3")
-            os.close(fd)
-            _openai_tts(say, mp3)
-            _play_mp3(mp3)
-            # Queue 16 kHz PCM for the T5 board speaker (best-effort)
-            try:
-                pcm = _openai_tts_pcm(say)
-                try:
-                    _board_pcm_queue.put_nowait(pcm)
-                except queue.Full:
-                    pass   # board not polling — discard
-            except Exception as board_err:
-                print(f"[TTS] board PCM failed: {board_err}", file=sys.stderr)
+            _speak_sapi(say)
         except Exception as e:
-            print(f"[TTS] OpenAI TTS failed ({e}), using WAV fallback", file=sys.stderr)
-            try:
-                _play_wav(_fallback_wav(say))
-            except Exception as e2:
-                print(f"[TTS] WAV fallback also failed: {e2}", file=sys.stderr)
-        finally:
-            if mp3:
-                try:
-                    os.unlink(mp3)
-                except OSError:
-                    pass
+            print(f"[TTS] SAPI failed: {e}", file=sys.stderr)
 
 
 def _openai_tts(text: str, path: str) -> None:
@@ -443,6 +420,23 @@ def _play_mp3(path: str) -> None:
     mm.mciSendStringW(f'open "{p}" type mpegvideo alias _ttsplay', None, 0, None)
     mm.mciSendStringW('play _ttsplay wait', None, 0, None)
     mm.mciSendStringW('close _ttsplay', None, 0, None)
+
+
+def _speak_sapi(text: str) -> None:
+    """Speak text using Windows SAPI with a calm voice and slower rate."""
+    import subprocess
+    safe = text.replace('"', "'").replace('\n', ' ').replace('\\', '')
+    script = (
+        'Add-Type -AssemblyName System.Speech; '
+        '$s = New-Object System.Speech.Synthesis.SpeechSynthesizer; '
+        '$s.Rate = -2; '  # -10 (slowest) to 10 (fastest), -2 is calm
+        'try { $s.SelectVoice("Microsoft Zira Desktop") } catch {}; '
+        f'$s.Speak("{safe}")'
+    )
+    subprocess.run(
+        ["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
+        check=True, timeout=30
+    )
 
 
 def _play_wav(path: str) -> None:
@@ -1243,7 +1237,7 @@ def main() -> None:
     print(f"  Camera:   index {args.camera}")
     print(f"  Interval: {args.interval}s")
     print(f"  Model:    {MODEL}")
-    print(f"  TTS:      {'enabled' if TTS_OK else 'disabled (tts.py not found)'}")
+    print(f"  TTS:      {'enabled' if os.environ.get('OPENAI_API_KEY') else 'disabled (OPENAI_API_KEY not set)'}")
     print()
 
     threading.Thread(target=_camera_thread, args=(args.camera,), daemon=True).start()

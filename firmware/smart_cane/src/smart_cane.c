@@ -509,6 +509,7 @@ static void sensor_thread_fn(void *arg)
  * ═════════════════════════════════════════════════════════════════════════════ */
 void user_main(void)
 {
+    OPERATE_RET rt = OPRT_OK;
     tal_log_init(TAL_LOG_LEVEL_INFO, 1024, (TAL_LOG_OUTPUT_CB)tkl_log_output);
     PR_NOTICE("SmartCane firmware starting");
     PR_NOTICE("  WiFi:   %s", WIFI_SSID);
@@ -532,8 +533,8 @@ void user_main(void)
         .key  = "dflfuap134ddlduq",
     });
     /* Store Tuya device credentials so the framework can access them */
-    tal_kv_set("tuya_uuid",    TUYA_DEVICE_UUID,    strlen(TUYA_DEVICE_UUID));
-    tal_kv_set("tuya_authkey", TUYA_DEVICE_AUTHKEY, strlen(TUYA_DEVICE_AUTHKEY));
+    tal_kv_set("tuya_uuid",    (const uint8_t *)TUYA_DEVICE_UUID,    strlen(TUYA_DEVICE_UUID));
+    tal_kv_set("tuya_authkey", (const uint8_t *)TUYA_DEVICE_AUTHKEY, strlen(TUYA_DEVICE_AUTHKEY));
     tal_sw_timer_init();
     tal_workq_init();
 
