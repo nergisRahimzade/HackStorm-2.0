@@ -109,30 +109,79 @@ HackStorm-2.0/
 ├── arduino/
 │   └── sensors.ino       # ultrasonic + IMU sketch
 ├── main.py               # entry point
-├── .env                  # OPENAI_API_KEY
+├── .env                  # GROQ_API_KEY
 ├── .gitignore
 └── README.md
 ```
 
 ---
 
-## Setup
+## Setup & Running the Localhost Server
 
-**1. Install dependencies**
+After cloning the repo:
+
+**1. Install Python dependencies**
 ```bash
-pip install opencv-python ultralytics pyserial pyttsx3 openai python-dotenv
+pip install flask opencv-python python-dotenv
 ```
 
-**2. Add your OpenAI API key to `.env`**
+**2. Create a `.env` file in the project root**
 ```
-OPENAI_API_KEY=sk-...
+GROQ_API_KEY=gsk_...
 ```
 
-**3. Flash `arduino/sensors.ino` to the Elegoo** using the Arduino IDE
+`GROQ_API_KEY` is used for vision analysis (Llama 4 Scout via Groq).
 
-**4. Run the cane**
+**3. Run the server**
 ```bash
-python main.py
+# From the project root
+python tools/smart_cane_app.py
+
+# Optional flags
+python tools/smart_cane_app.py --camera 0 --interval 3
+```
+
+The live UI will be available at **http://localhost:5000**
+
+The T5AI firmware board connects to this server at `http://<your-laptop-IP>:5000/api/status`. Update `LAPTOP_IP` in `firmware/smart_cane_hw_output/src/hw_output.c` to match your machine's IP address.
+
+---
+
+## Common Errors
+
+### `Flask is required. Run: pip install flask`
+Flask is not installed.
+```bash
+pip install flask
+```
+
+### `OpenCV is required. Run: pip install opencv-python`
+OpenCV is not installed.
+```bash
+pip install opencv-python
+```
+
+### `ERROR: prompt file not found: .../tools/scene_prompt_always_on.txt`
+The scene prompt file is missing from the `tools/` directory. Ensure `tools/scene_prompt_always_on.txt` exists — it ships with the repo and should not be deleted.
+
+### `[Camera] ERROR: cannot open camera 0.`
+The webcam index is wrong or the camera is in use by another app. Try index `1`:
+```bash
+python tools/smart_cane_app.py --camera 1
+```
+
+### `ModuleNotFoundError: No module named 'dotenv'`
+```bash
+pip install python-dotenv
+```
+
+### `KeyError` or `401 Unauthorized` from Groq
+API key is missing or invalid. Check that `.env` in the project root contains a valid `GROQ_API_KEY` value.
+
+### `ModuleNotFoundError: No module named 'cv2'`
+Same as the OpenCV error above — `cv2` is the import name for `opencv-python`:
+```bash
+pip install opencv-python
 ```
 
 ---

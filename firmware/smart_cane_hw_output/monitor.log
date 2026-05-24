@@ -1,0 +1,312 @@
+wait ack timeout 1
+[0;31;49m[01-01 00:00:11 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:11 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:11 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:11 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:11 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:11 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:11 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:11 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:11 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:11 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:11 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:11 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:11 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:11 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:11 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:11 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:11 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:11 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+wait ack timeout 1
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:12 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:12 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+wait ack timeout 1
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:13 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:13 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:14 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:14 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:14 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:14 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:14 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:14 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:14 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:14 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:14 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:14 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:14 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:14 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
+wait ack timeout 1
+[0;31;49m[01-01 00:00:14 ty E][tdd_tp_i2c.c:81] send addr fail[0m
+[0;31;49m[01-01 00:00:14 ty E][tdd_tp_gt1151.c:80] ret:-1[0m
+[0;31;49m[01-01 00:00:14 ty E][tdl_tp_manage.c:147] Failed to read tp data: -1[0m
