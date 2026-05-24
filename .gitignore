@@ -12,6 +12,10 @@ Thumbs.db
 capture*.jpg
 probe_cam*.jpg
 
+# Python caches
+__pycache__/
+*.pyc
+
 # Generated alert audio (regenerate with: python tools/tts.py --bake)
 tools/alerts/
 
