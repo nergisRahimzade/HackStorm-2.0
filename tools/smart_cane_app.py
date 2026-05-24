@@ -72,6 +72,19 @@ SCAN_INTERVAL  = 20.0       # seconds between analyses — free Groq tier: ~30k 
                              # each scan ≈ 4k tokens → max ~7 scans/min → 20s is safe
 ALERT_COOLDOWN  = 20.0      # seconds before the same general SAY: line repeats
 EDGE_TTS_VOICE  = "en-US-JennyNeural"  # calm female neural voice
+ALERTS_DIR      = os.path.join(HERE, "alerts")   # pre-baked WAV fallbacks
+
+# Keyword → WAV fallback (first match wins; case-insensitive)
+_FALLBACK_MAP: list[tuple[list[str], str]] = [
+    (["dropoff", "drop-off", "step down", "stairs", "curb", "platform edge",
+      "edge ahead", "uneven"],                                       "dropoff.wav"),
+    (["overhead", "above you", "low branch", "low-hanging",
+      "scaffolding", "sign ahead", "beam"],                          "overhead_hazard.wav"),
+    (["elevator", "lift", "doors opening", "doors are open"],         "elevator_open.wav"),
+    (["red light", "do not walk", "stop light", "wait to cross"],     "red_light.wav"),
+    (["green light", "walk signal", "okay to cross", "safe to cross"],"green_light.wav"),
+]
+
 HAZARD_COOLDOWN         = 10.0   # shorter cooldown for safety-critical hazard alerts
 ELEVATOR_COOLDOWN       = 30.0   # cooldown for elevator state announcements
 TRAFFIC_COOLDOWN_COLOR  = 30.0   # cooldown for repeating the same traffic light color
@@ -346,8 +359,14 @@ def _broadcast(event: dict) -> None:
 def _tts_worker() -> None:
     while True:
         say = _tts_queue.get()
+        # ── Fast path: edge-tts not installed ─────────────────────────────
         if not EDGE_TTS_OK:
+            try:
+                _play_wav(_fallback_wav(say))
+            except Exception as e:
+                print(f"[TTS] WAV fallback failed: {e}", file=sys.stderr)
             continue
+        # ── Primary: neural synthesis via edge-tts ────────────────────────
         mp3 = None
         try:
             fd, mp3 = tempfile.mkstemp(suffix=".mp3")
@@ -355,7 +374,11 @@ def _tts_worker() -> None:
             asyncio.run(_synth_mp3(say, mp3))
             _play_mp3(mp3)
         except Exception as e:
-            print(f"[TTS] {e}", file=sys.stderr)
+            print(f"[TTS] edge-tts failed ({e}), using WAV fallback", file=sys.stderr)
+            try:
+                _play_wav(_fallback_wav(say))
+            except Exception as e2:
+                print(f"[TTS] WAV fallback also failed: {e2}", file=sys.stderr)
         finally:
             if mp3:
                 try:
@@ -378,6 +401,27 @@ def _play_mp3(path: str) -> None:
     mm.mciSendStringW(f'open "{p}" type mpegvideo alias _ttsplay', None, 0, None)
     mm.mciSendStringW('play _ttsplay wait', None, 0, None)
     mm.mciSendStringW('close _ttsplay', None, 0, None)
+
+
+def _play_wav(path: str) -> None:
+    """Play a WAV file synchronously via Windows MCI."""
+    import ctypes
+    mm = ctypes.windll.winmm
+    p  = path.replace("/", "\\")
+    mm.mciSendStringW('close _ttswav', None, 0, None)
+    mm.mciSendStringW(f'open "{p}" type waveaudio alias _ttswav', None, 0, None)
+    mm.mciSendStringW('play _ttswav wait', None, 0, None)
+    mm.mciSendStringW('close _ttswav', None, 0, None)
+
+
+def _fallback_wav(say: str) -> str:
+    """Return the best-match alert WAV path for *say* text.
+    Falls back to scene_unavailable.wav when nothing matches."""
+    lower = say.lower()
+    for keywords, fname in _FALLBACK_MAP:
+        if any(k in lower for k in keywords):
+            return os.path.join(ALERTS_DIR, fname)
+    return os.path.join(ALERTS_DIR, "scene_unavailable.wav")
 
 
 def _speak(say: str) -> None:
