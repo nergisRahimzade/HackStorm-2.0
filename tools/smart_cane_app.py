@@ -42,7 +42,7 @@ load_dotenv(os.path.join(HERE, "..", ".env"))
 # ── Dependency checks ──────────────────────────────────────────────────────────
 
 try:
-    from flask import Flask, Response, stream_with_context
+    from flask import Flask, Response, request, stream_with_context
 except ImportError:
     print("Flask is required.  Run:  pip install flask", file=sys.stderr)
     sys.exit(1)
@@ -57,15 +57,14 @@ except ImportError:
 
 GROQ_URL       = "https://api.groq.com/openai/v1/chat/completions"
 MODEL          = "meta-llama/llama-4-scout-17b-16e-instruct"
-CAMERA_FPS     = 7          # webcam read rate
+CAMERA_FPS     = 10         # webcam read rate
 WARMUP_FRAMES  = 14         # frames to discard on startup for exposure to settle
-BURST_SIZE     = 2          # frames per Groq request (2 = ~4 k tokens, fits free tier)
-SCAN_INTERVAL  = 20.0       # seconds between analyses — free Groq tier: ~30k TPM
-                             # each scan ≈ 4k tokens → max ~7 scans/min → 20s is safe
+BURST_SIZE     = 1          # 1 frame per Groq call: ~2k tokens → 15 calls/min ≤ 30k TPM
+SCAN_INTERVAL  = 4.0        # seconds between analyses — 1 frame ≈ 2k tokens, 15/min = 30k TPM
 ALERT_COOLDOWN  = 20.0      # seconds before the same general SAY: line repeats
 OPENAI_TTS_URL   = "https://api.openai.com/v1/audio/speech"
 OPENAI_TTS_MODEL = "tts-1"              # fast neural TTS; swap to "tts-1-hd" for higher quality
-OPENAI_TTS_VOICE = "nova"              # clear, natural female voice
+OPENAI_TTS_VOICE = "shimmer"           # soft, gentle voice — calm for safety alerts
 ALERTS_DIR      = os.path.join(HERE, "alerts")   # pre-baked WAV fallbacks
 
 # Keyword → WAV fallback (first match wins; case-insensitive)
@@ -115,6 +114,9 @@ _sse_clients  = []
 
 # TTS: single consumer thread for sequential playback.
 _tts_queue    = queue.Queue(maxsize=3)
+
+# Board audio: PCM queued for the T5 board to fetch via GET /pending_command.
+_board_pcm_queue: queue.Queue = queue.Queue(maxsize=8)
 
 # Cooldown: normalized SAY: text → last-spoken monotonic timestamp.
 _said_lock = threading.Lock()
@@ -187,7 +189,7 @@ def _groq_call(jpegs: list[bytes]) -> str:
         })
     payload = {
         "model": MODEL,
-        "max_tokens": 450,       # headroom for all output lines
+        "max_tokens": 300,       # enough for all structured output lines
         "messages": [{"role": "user", "content": content}],
     }
     req = urllib.request.Request(
@@ -201,7 +203,7 @@ def _groq_call(jpegs: list[bytes]) -> str:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=40) as r:
+        with urllib.request.urlopen(req, timeout=15) as r:
             data = json.load(r)
     except urllib.error.HTTPError as e:
         raise RuntimeError(
@@ -359,6 +361,15 @@ def _tts_worker() -> None:
             os.close(fd)
             _openai_tts(say, mp3)
             _play_mp3(mp3)
+            # Queue 16 kHz PCM for the T5 board speaker (best-effort)
+            try:
+                pcm = _openai_tts_pcm(say)
+                try:
+                    _board_pcm_queue.put_nowait(pcm)
+                except queue.Full:
+                    pass   # board not polling — discard
+            except Exception as board_err:
+                print(f"[TTS] board PCM failed: {board_err}", file=sys.stderr)
         except Exception as e:
             print(f"[TTS] OpenAI TTS failed ({e}), using WAV fallback", file=sys.stderr)
             try:
@@ -393,6 +404,34 @@ def _openai_tts(text: str, path: str) -> None:
     with urllib.request.urlopen(req, timeout=15) as r:
         with open(path, "wb") as f:
             f.write(r.read())
+
+
+def _openai_tts_pcm(text: str) -> bytes:
+    """Synthesize text via OpenAI TTS → 16 kHz / 16-bit / mono PCM for the T5 board."""
+    import numpy as np
+    payload = {
+        "model": OPENAI_TTS_MODEL,
+        "input": text,
+        "voice": OPENAI_TTS_VOICE,
+        "response_format": "pcm",   # raw 24 kHz / 16-bit / mono
+    }
+    req = urllib.request.Request(
+        OPENAI_TTS_URL,
+        json.dumps(payload).encode("utf-8"),
+        {
+            "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=15) as r:
+        pcm_24k = r.read()
+    # Resample 24 kHz → 16 kHz via linear interpolation
+    samples_in  = np.frombuffer(pcm_24k, dtype=np.int16).astype(np.float32)
+    n_out       = int(round(len(samples_in) * 16000 / 24000))
+    x_out       = np.linspace(0, len(samples_in) - 1, n_out)
+    samples_out = np.interp(x_out, np.arange(len(samples_in)), samples_in).astype(np.int16)
+    return samples_out.tobytes()
 
 
 def _play_mp3(path: str) -> None:
@@ -452,8 +491,11 @@ def _scanner_thread() -> None:
             frames = list(_frame_deque)
         if len(frames) < BURST_SIZE:
             continue
-        step  = max(1, (len(frames) - 1) // (BURST_SIZE - 1))
-        burst = [frames[min(i * step, len(frames) - 1)][1] for i in range(BURST_SIZE)]
+        if BURST_SIZE == 1:
+            burst = [frames[-1][1]]
+        else:
+            step  = max(1, (len(frames) - 1) // (BURST_SIZE - 1))
+            burst = [frames[min(i * step, len(frames) - 1)][1] for i in range(BURST_SIZE)]
 
         with _state_lock:
             _status = "analyzing"
@@ -1144,6 +1186,38 @@ def api_status():
     return json.dumps(payload), 200, {"Content-Type": "application/json"}
 
 
+@app.route("/pending_command")
+def pending_command():
+    """T5 board polls this (GET) to receive queued TTS audio as 16 kHz/16-bit/mono raw PCM.
+    Returns 200 + PCM bytes, or 204 if nothing is queued."""
+    try:
+        pcm = _board_pcm_queue.get_nowait()
+        return Response(pcm, mimetype="audio/L16",
+                        headers={"Content-Length": str(len(pcm))})
+    except queue.Empty:
+        return Response(status=204)
+
+
+@app.route("/event", methods=["POST"])
+def board_event():
+    """T5 board POSTs hardware events here.
+    Body: {"type": "fall_detected", "magnitude": 0.35}
+          {"type": "obstacle",      "distance_cm": 7.2}"""
+    try:
+        ev      = request.get_json(force=True, silent=True) or {}
+        ev_type = ev.get("type", "")
+        if ev_type == "fall_detected":
+            _speak("Fall detected. Sending your location.")
+        elif ev_type == "obstacle":
+            dist = ev.get("distance_cm")
+            if dist is not None:
+                _speak(f"Obstacle {float(dist):.0f} centimeters ahead.")
+        print(f"[Board] event: {ev}")
+    except Exception as e:
+        print(f"[Board] event error: {e}", file=sys.stderr)
+    return Response(status=200)
+
+
 # ── Entry point ────────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -1151,7 +1225,7 @@ def main() -> None:
 
     ap = argparse.ArgumentParser(description="SmartCane — always-on Scene Reading web app")
     ap.add_argument("--camera",   type=int,   default=1,   help="webcam index (default 1)")
-    ap.add_argument("--interval", type=float, default=20.0, help="seconds between analyses (default 20; free Groq tier: keep >= 16)")
+    ap.add_argument("--interval", type=float, default=4.0,  help="seconds between analyses (default 4; free Groq tier: min ~4 with 1 frame)")
     ap.add_argument("--port",     type=int,   default=5000, help="web server port (default 5000)")
     args = ap.parse_args()
 

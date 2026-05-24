@@ -39,7 +39,7 @@ ALERTS_DIR = os.path.join(HERE, "alerts")
 # OpenAI TTS configuration
 OPENAI_TTS_URL    = "https://api.openai.com/v1/audio/speech"
 OPENAI_TTS_MODEL  = "tts-1"      # fast neural TTS; swap to "tts-1-hd" for higher quality
-OPENAI_TTS_VOICE  = "nova"       # default voice — clear, natural female
+OPENAI_TTS_VOICE  = "shimmer"    # default voice — soft, gentle, calm
 OPENAI_VOICES     = ["alloy", "ash", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer"]
 OPENAI_SOURCE_RATE = 24000       # OpenAI PCM output sample rate
 TARGET_RATE        = 16000       # T5 board codec requirement (16 kHz/16-bit/mono)
