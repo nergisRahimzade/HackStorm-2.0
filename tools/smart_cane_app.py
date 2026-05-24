@@ -23,8 +23,10 @@ import collections
 import json
 import os
 import queue
+import asyncio
 import re
 import sys
+import tempfile
 import threading
 import time
 import urllib.error
@@ -52,11 +54,12 @@ except ImportError:
     sys.exit(1)
 
 try:
-    from tts import synth_wav
-    TTS_OK = True
+    import edge_tts as _edge_tts_mod   # verify importable at startup
+    EDGE_TTS_OK = True
 except ImportError:
-    TTS_OK = False
-    print("[WARN] tts.py not found — audio disabled.", file=sys.stderr)
+    EDGE_TTS_OK = False
+    print("[WARN] edge-tts not installed — audio disabled.  Run: pip install edge-tts",
+          file=sys.stderr)
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -68,6 +71,7 @@ BURST_SIZE     = 2          # frames per Groq request (2 = ~4 k tokens, fits fre
 SCAN_INTERVAL  = 20.0       # seconds between analyses — free Groq tier: ~30k TPM
                              # each scan ≈ 4k tokens → max ~7 scans/min → 20s is safe
 ALERT_COOLDOWN  = 20.0      # seconds before the same general SAY: line repeats
+EDGE_TTS_VOICE  = "en-US-JennyNeural"  # calm female neural voice
 HAZARD_COOLDOWN         = 10.0   # shorter cooldown for safety-critical hazard alerts
 ELEVATOR_COOLDOWN       = 30.0   # cooldown for elevator state announcements
 TRAFFIC_COOLDOWN_COLOR  = 30.0   # cooldown for repeating the same traffic light color
@@ -342,19 +346,38 @@ def _broadcast(event: dict) -> None:
 def _tts_worker() -> None:
     while True:
         say = _tts_queue.get()
-        if not TTS_OK:
+        if not EDGE_TTS_OK:
             continue
+        mp3 = None
         try:
-            wav = synth_wav(say)
-            if sys.platform.startswith("win"):
-                import winsound
-                winsound.PlaySound(wav, winsound.SND_FILENAME)
-            else:
-                import subprocess
-                cmd = ["afplay", wav] if sys.platform == "darwin" else ["aplay", wav]
-                subprocess.run(cmd, check=False, capture_output=True)
+            fd, mp3 = tempfile.mkstemp(suffix=".mp3")
+            os.close(fd)
+            asyncio.run(_synth_mp3(say, mp3))
+            _play_mp3(mp3)
         except Exception as e:
             print(f"[TTS] {e}", file=sys.stderr)
+        finally:
+            if mp3:
+                try:
+                    os.unlink(mp3)
+                except OSError:
+                    pass
+
+async def _synth_mp3(text: str, path: str) -> None:
+    """Synthesize text with JennyNeural and write to a temp MP3 file."""
+    comm = _edge_tts_mod.Communicate(text, EDGE_TTS_VOICE, rate="-5%")
+    await comm.save(path)
+
+
+def _play_mp3(path: str) -> None:
+    """Play an MP3 synchronously via Windows MCI (no extra packages)."""
+    import ctypes
+    mm = ctypes.windll.winmm
+    p  = path.replace("/", "\\")
+    mm.mciSendStringW('close _ttsplay', None, 0, None)   # clear any stale alias
+    mm.mciSendStringW(f'open "{p}" type mpegvideo alias _ttsplay', None, 0, None)
+    mm.mciSendStringW('play _ttsplay wait', None, 0, None)
+    mm.mciSendStringW('close _ttsplay', None, 0, None)
 
 
 def _speak(say: str) -> None:
@@ -416,7 +439,7 @@ def _scanner_thread() -> None:
                     print(f"[Scanner] {ts}  [OVERHEAD]  {msg}")
 
             # ── General scene alert ────────────────────────────────────────
-            if scene["important"] and _should_speak(scene["say"]):
+            if _should_speak(scene["say"]):
                 _speak(scene["say"])
                 spoke = True
 
