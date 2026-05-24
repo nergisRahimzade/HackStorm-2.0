@@ -2,8 +2,8 @@
 """
 tts.py - SmartCane text-to-speech for spoken notifications & alerts.
 
-Uses Windows' built-in System.Speech (SAPI) via PowerShell: offline, free, no
-API key. Output is 16 kHz / 16-bit / mono PCM - exactly the format the T5
+Uses the OpenAI TTS API (tts-1 model) to synthesize speech and resamples
+the output to 16 kHz / 16-bit / mono PCM — exactly the format the T5
 board's audio codec plays, so the board can play the bytes directly with
 tdl_audio_play().
 
@@ -18,20 +18,31 @@ CLI:
   python tts.py "Green light"               # speak it on this laptop (test phrasing)
   python tts.py --bake                      # generate alerts/*.pcm (+ *.wav to listen)
   python tts.py --list                      # show the built-in alert phrases
-  python tts.py --voices                    # list installed SAPI voices
-  python tts.py --voice "Microsoft Zira" "Fall detected"
+  python tts.py --voices                    # list available OpenAI TTS voices
+  python tts.py --voice shimmer "Fall detected"
 """
 
 import argparse
+import json
 import os
 import shutil
-import subprocess
 import sys
 import tempfile
+import urllib.request
 import wave
+
+import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ALERTS_DIR = os.path.join(HERE, "alerts")
+
+# OpenAI TTS configuration
+OPENAI_TTS_URL    = "https://api.openai.com/v1/audio/speech"
+OPENAI_TTS_MODEL  = "tts-1"      # fast neural TTS; swap to "tts-1-hd" for higher quality
+OPENAI_TTS_VOICE  = "nova"       # default voice — clear, natural female
+OPENAI_VOICES     = ["alloy", "ash", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer"]
+OPENAI_SOURCE_RATE = 24000       # OpenAI PCM output sample rate
+TARGET_RATE        = 16000       # T5 board codec requirement (16 kHz/16-bit/mono)
 
 # Built-in SmartCane notification/alert phrases (name -> spoken text).
 # Keep them SHORT and FACTUAL. These get pre-baked for instant playback.
@@ -51,26 +62,37 @@ ALERTS = {
 
 
 def synth_wav(text, voice=None):
-    """Synthesize `text` to a 16 kHz/16-bit/mono WAV file; return its path."""
+    """Synthesize `text` via OpenAI TTS; resample to 16 kHz/16-bit/mono WAV; return path."""
     td = tempfile.mkdtemp(prefix="tts_")
-    txt_path = os.path.join(td, "t.txt")
     wav_path = os.path.join(td, "o.wav")
-    with open(txt_path, "w", encoding="utf-8") as fh:
-        fh.write(text)
-    select = f"$s.SelectVoice('{voice}');" if voice else ""
-    ps = (
-        "Add-Type -AssemblyName System.Speech;"
-        "$fmt=New-Object System.Speech.AudioFormat.SpeechAudioFormatInfo("
-        "16000,[System.Speech.AudioFormat.AudioBitsPerSample]::Sixteen,"
-        "[System.Speech.AudioFormat.AudioChannel]::Mono);"
-        "$s=New-Object System.Speech.Synthesis.SpeechSynthesizer;"
-        f"{select}"
-        f"$s.SetOutputToWaveFile('{wav_path}',$fmt);"
-        f"$s.Speak((Get-Content -Raw -Encoding UTF8 '{txt_path}'));"
-        "$s.Dispose()"
+    payload = {
+        "model": OPENAI_TTS_MODEL,
+        "input": text,
+        "voice": voice or OPENAI_TTS_VOICE,
+        "response_format": "pcm",   # raw 24 kHz / 16-bit / mono from OpenAI
+    }
+    req = urllib.request.Request(
+        OPENAI_TTS_URL,
+        json.dumps(payload).encode("utf-8"),
+        {
+            "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
     )
-    subprocess.run(["powershell", "-NoProfile", "-Command", ps],
-                   check=True, capture_output=True)
+    with urllib.request.urlopen(req, timeout=30) as r:
+        pcm_24k = r.read()
+    # Resample 24 kHz → 16 kHz via linear interpolation (numpy is available via opencv)
+    samples = np.frombuffer(pcm_24k, dtype=np.int16).astype(np.float32)
+    n_out = int(round(len(samples) * TARGET_RATE / OPENAI_SOURCE_RATE))
+    t_in  = np.arange(len(samples))
+    t_out = np.linspace(0, len(samples) - 1, n_out)
+    samples_16k = np.interp(t_out, t_in, samples).astype(np.int16)
+    with wave.open(wav_path, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)        # 16-bit
+        w.setframerate(TARGET_RATE)
+        w.writeframes(samples_16k.tobytes())
     return wav_path
 
 
@@ -90,12 +112,8 @@ def text_to_pcm(text, voice=None):
 
 
 def list_voices():
-    ps = ("Add-Type -AssemblyName System.Speech;"
-          "(New-Object System.Speech.Synthesis.SpeechSynthesizer)"
-          ".GetInstalledVoices()|%{$_.VoiceInfo.Name}")
-    out = subprocess.run(["powershell", "-NoProfile", "-Command", ps],
-                         capture_output=True, text=True)
-    return [ln.strip() for ln in out.stdout.splitlines() if ln.strip()]
+    """Return the list of available OpenAI TTS voice names."""
+    return OPENAI_VOICES
 
 
 def bake(voice=None):
@@ -116,8 +134,8 @@ def main():
     ap.add_argument("text", nargs="?", help="speak this text on the laptop (test)")
     ap.add_argument("--bake", action="store_true", help="generate alerts/*.pcm")
     ap.add_argument("--list", action="store_true", help="show built-in alert phrases")
-    ap.add_argument("--voices", action="store_true", help="list installed voices")
-    ap.add_argument("--voice", help="voice name (see --voices)")
+    ap.add_argument("--voices", action="store_true", help="list available OpenAI TTS voices")
+    ap.add_argument("--voice", help=f"OpenAI voice name (see --voices); default: {OPENAI_TTS_VOICE}")
     a = ap.parse_args()
 
     if a.voices:

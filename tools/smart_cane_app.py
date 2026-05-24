@@ -4,7 +4,7 @@ smart_cane_app.py — SmartCane: always-on Scene Reading with live web UI.
 
 Continuously captures frames from the USB webcam, analyzes them with
 Groq vision (Llama 4 Scout) every N seconds, and speaks the result
-via Windows SAPI TTS when something important is detected.
+via OpenAI TTS when something important is detected.
 
 Live results are shown at http://localhost:5000
 
@@ -13,6 +13,7 @@ Requirements:
 
 Setup:
     $env:GROQ_API_KEY = "gsk_..."
+    $env:OPENAI_API_KEY = "sk-..."
     python smart_cane_app.py                          # default: camera 1, 5 s interval
     python smart_cane_app.py --camera 0 --interval 3  # faster, different camera
 """
@@ -23,7 +24,6 @@ import collections
 import json
 import os
 import queue
-import asyncio
 import re
 import sys
 import tempfile
@@ -53,14 +53,6 @@ except ImportError:
     print("OpenCV is required.  Run:  pip install opencv-python", file=sys.stderr)
     sys.exit(1)
 
-try:
-    import edge_tts as _edge_tts_mod   # verify importable at startup
-    EDGE_TTS_OK = True
-except ImportError:
-    EDGE_TTS_OK = False
-    print("[WARN] edge-tts not installed — audio disabled.  Run: pip install edge-tts",
-          file=sys.stderr)
-
 # ── Constants ──────────────────────────────────────────────────────────────────
 
 GROQ_URL       = "https://api.groq.com/openai/v1/chat/completions"
@@ -71,7 +63,9 @@ BURST_SIZE     = 2          # frames per Groq request (2 = ~4 k tokens, fits fre
 SCAN_INTERVAL  = 20.0       # seconds between analyses — free Groq tier: ~30k TPM
                              # each scan ≈ 4k tokens → max ~7 scans/min → 20s is safe
 ALERT_COOLDOWN  = 20.0      # seconds before the same general SAY: line repeats
-EDGE_TTS_VOICE  = "en-US-JennyNeural"  # calm female neural voice
+OPENAI_TTS_URL   = "https://api.openai.com/v1/audio/speech"
+OPENAI_TTS_MODEL = "tts-1"              # fast neural TTS; swap to "tts-1-hd" for higher quality
+OPENAI_TTS_VOICE = "nova"              # clear, natural female voice
 ALERTS_DIR      = os.path.join(HERE, "alerts")   # pre-baked WAV fallbacks
 
 # Keyword → WAV fallback (first match wins; case-insensitive)
@@ -359,22 +353,14 @@ def _broadcast(event: dict) -> None:
 def _tts_worker() -> None:
     while True:
         say = _tts_queue.get()
-        # ── Fast path: edge-tts not installed ─────────────────────────────
-        if not EDGE_TTS_OK:
-            try:
-                _play_wav(_fallback_wav(say))
-            except Exception as e:
-                print(f"[TTS] WAV fallback failed: {e}", file=sys.stderr)
-            continue
-        # ── Primary: neural synthesis via edge-tts ────────────────────────
         mp3 = None
         try:
             fd, mp3 = tempfile.mkstemp(suffix=".mp3")
             os.close(fd)
-            asyncio.run(_synth_mp3(say, mp3))
+            _openai_tts(say, mp3)
             _play_mp3(mp3)
         except Exception as e:
-            print(f"[TTS] edge-tts failed ({e}), using WAV fallback", file=sys.stderr)
+            print(f"[TTS] OpenAI TTS failed ({e}), using WAV fallback", file=sys.stderr)
             try:
                 _play_wav(_fallback_wav(say))
             except Exception as e2:
@@ -386,10 +372,27 @@ def _tts_worker() -> None:
                 except OSError:
                     pass
 
-async def _synth_mp3(text: str, path: str) -> None:
-    """Synthesize text with JennyNeural and write to a temp MP3 file."""
-    comm = _edge_tts_mod.Communicate(text, EDGE_TTS_VOICE, rate="-5%")
-    await comm.save(path)
+
+def _openai_tts(text: str, path: str) -> None:
+    """Synthesize text with OpenAI TTS (tts-1) and write to a temp MP3 file."""
+    payload = {
+        "model": OPENAI_TTS_MODEL,
+        "input": text,
+        "voice": OPENAI_TTS_VOICE,
+        "response_format": "mp3",
+    }
+    req = urllib.request.Request(
+        OPENAI_TTS_URL,
+        json.dumps(payload).encode("utf-8"),
+        {
+            "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=15) as r:
+        with open(path, "wb") as f:
+            f.write(r.read())
 
 
 def _play_mp3(path: str) -> None:
