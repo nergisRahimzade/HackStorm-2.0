@@ -21,10 +21,15 @@
  */
 
 /* ── User-configurable settings ─────────────────────────────────────────────── */
-#define WIFI_SSID    "YourWiFiSSID"       /* 2.4 GHz network the laptop is on  */
-#define WIFI_PASS    "YourWiFiPassword"   /* WPA2 passphrase                   */
-#define LAPTOP_IP    "192.168.1.100"      /* laptop's IP on that network        */
-#define LAPTOP_PORT  5000                 /* smart_cane_app.py Flask port       */
+/* WiFi — UPDATE SSID/PASS/IP when switching networks                            */
+#define WIFI_SSID    "hasan adl\u0131 ki\u015fiye ait S21 FE"  /* current 2.4 GHz hotspot        */
+#define WIFI_PASS    "ulku2503,"           /* WPA2 passphrase                   */
+#define LAPTOP_IP    "10.218.130.50"       /* laptop IP on this network          */
+#define LAPTOP_PORT  5000                  /* smart_cane_app.py Flask port       */
+
+/* Tuya device license (uuid + authkey from TuyaOpen dashboard)                  */
+#define TUYA_DEVICE_UUID    "uuidb744bb895f8e33c2"
+#define TUYA_DEVICE_AUTHKEY "P5kB67vHCaz8YBu8kW9lQYLTDxiAmG5E"
 /* ─────────────────────────────────────────────────────────────────────────────── */
 
 #include <string.h>
@@ -526,6 +531,9 @@ void user_main(void)
         .seed = "vmlkasdh93dlvlcy",
         .key  = "dflfuap134ddlduq",
     });
+    /* Store Tuya device credentials so the framework can access them */
+    tal_kv_set("tuya_uuid",    TUYA_DEVICE_UUID,    strlen(TUYA_DEVICE_UUID));
+    tal_kv_set("tuya_authkey", TUYA_DEVICE_AUTHKEY, strlen(TUYA_DEVICE_AUTHKEY));
     tal_sw_timer_init();
     tal_workq_init();
 
